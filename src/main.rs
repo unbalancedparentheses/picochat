@@ -9,7 +9,7 @@ fn main () {
         socket.set_broadcast(true).expect("set_broadcast call failed");
 
         print!("> ");
-        io::stdout().flush().unwrap_or_default();
+        io::stdout().flush().unwrap();
 
         loop {
 
@@ -20,7 +20,7 @@ fn main () {
 
                     process(&socket, input);
                     print!("> ");
-                    io::stdout().flush().unwrap_or_default();
+                    io::stdout().flush().unwrap();
                 }
                 Err(error) => println!("error: {}", error),
             }
