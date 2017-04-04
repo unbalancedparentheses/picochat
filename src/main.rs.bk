@@ -1,0 +1,19 @@
+// use std::net::UdpSocket;
+use std::io;
+
+fn main () {
+
+    loop {
+        let stdin = io::stdin();
+        let mut line: String = "".to_string();
+
+        print!("> ");
+        stdin.read_line(&mut line).unwrap();
+        println!();
+
+    }
+
+    // let socket = UdpSocket::bind("0.0.0.0:4040").expect("couldn't bind to address");
+    // socket.set_broadcast(true).expect("set_broadcast call failed");
+    // socket.send_to(b"hola", "255.255.255.255:4041").expect("couldn't send data");
+}
