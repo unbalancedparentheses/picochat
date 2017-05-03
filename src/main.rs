@@ -28,15 +28,26 @@ fn main () {
     });
 
     let child2 = thread::spawn(move || {
+        let socket = UdpSocket::bind("0.0.0.0:4041").expect("couldn't bind to address");
         loop {
-            let socket = UdpSocket::bind("0.0.0.0:4041").expect("couldn't bind to address");
-            let mut buf = [0; 10];
-            let (_, _) = socket.recv_from(&mut buf)
-                                                .expect("Didn't receive data");
 
-            println!("{:?}", buf);
+            let mut buf_header = [0; 2];
+            let (received_bytes, _source) = socket.recv_from(&mut buf_header)
+                .expect("Didn't receive data");
+
+            let mut left: u8  = std::str::from_utf8(&buf_header[1..2]).unwrap().parse().unwrap();
+            
+            while left > 0 {
+                let mut buffer = [0; 1];
+                let (received_bytes2, _source) = socket.recv_from(&mut buffer).expect("didn't receive data TODO");
+                left = left - received_bytes2 as u8;
+                println!("{}", left);
+            }
+            
+            //println!("{}", std::str::from_utf8(&buf[0..received_bytes2]).unwrap());
+            io::stdout().flush().unwrap();
         }
-    }); 
+    });
     
     child.join().unwrap();
     child2.join().unwrap();
@@ -45,17 +56,13 @@ fn main () {
 fn process(socket: &UdpSocket, input: String) {
     match input.as_ref() {
         "" => {
-            ()
-        },
-        "/probe" => {
-            let message = b"P";
-            socket.send_to(message, "255.255.255.255:4041").expect("couldn't send data");
-            ()
         },
         _ => {
-            let message = format!("{}{}", "M", input);
-            socket.send_to(&message.into_bytes(), "255.255.255.255:4041").expect("couldn't send data");           
-            ()
+            let size = input.len();
+            println!("{}", size);
+            let message = format!("{}{}{}", "M", size, input);
+            socket.send_to(&message.into_bytes(), "255.255.255.255:4041").expect("couldn't send data");
         }
     }
+    ()
 }
