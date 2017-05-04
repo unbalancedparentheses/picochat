@@ -2,9 +2,17 @@ use std::net::UdpSocket;
 use std::io;
 use std::io::Write;
 use std::thread;
+use std::time::Duration;
+use std::process;
+use std::sync::{Arc, Mutex};
+use std::collections::HashMap;
+use std::time::SystemTime;
 
 fn main () {
-    let child = thread::spawn(move || {
+    let peers = Arc::new(Mutex::new(HashMap::new()));
+
+    let peers_sender = peers.clone();
+    let sender = thread::spawn(move || {
         let socket = UdpSocket::bind("0.0.0.0:0").expect("couldn't bind to address");
         socket.set_broadcast(true).expect("set_broadcast call failed");
 
@@ -12,7 +20,6 @@ fn main () {
         io::stdout().flush().unwrap();
 
         loop {
-
             let mut input = String::new();
             match io::stdin().read_line(&mut input) {
                 Ok(_) => {
@@ -21,46 +28,74 @@ fn main () {
                     process(&socket, input);
                     print!("> ");
                     io::stdout().flush().unwrap();
+                    println!("peers {:?}", *peers_sender.lock().unwrap());
                 }
-                Err(error) => println!("error: {}", error),
+                Err(error) =>
+                    println!("error: {}", error),
             }
         }
     });
 
-    let child2 = thread::spawn(move || {
-        let socket = UdpSocket::bind("0.0.0.0:4041").expect("couldn't bind to address");
+    let prober = thread::spawn(|| {
+        let socket = UdpSocket::bind("0.0.0.0:0").expect("couldn't bind to address");
+        socket.set_broadcast(true).expect("set_broadcast call failed");
         loop {
+            let message = format!("P");
+            socket.send_to(&message.into_bytes(), "255.255.255.255:4041").expect("couldn't send data");
+            thread::sleep(Duration::from_millis(5000)); //TODO put in seconds
+        }
+    });
 
-            let mut buf_header = [0; 2];
-            let (received_bytes, _source) = socket.recv_from(&mut buf_header)
+    let peers_rec = peers.clone();
+    let receiver = thread::spawn(move || {
+        let socket = UdpSocket::bind("0.0.0.0:4041").expect("couldn't bind to address");
+        
+        loop {
+            let mut buffer = [0; 512];
+            let (received_bytes, source) = socket.recv_from(&mut buffer)
                 .expect("Didn't receive data");
 
-            let mut left: u8  = std::str::from_utf8(&buf_header[1..2]).unwrap().parse().unwrap();
-            
-            while left > 0 {
-                let mut buffer = [0; 1];
-                let (received_bytes2, _source) = socket.recv_from(&mut buffer).expect("didn't receive data TODO");
-                left = left - received_bytes2 as u8;
-                println!("{}", left);
+            match std::str::from_utf8(&buffer[0..1]).unwrap() {
+                "M" => {
+                    println!("{}", std::str::from_utf8(&buffer[2..received_bytes]).unwrap());
+                    io::stdout().flush().unwrap();
+                }
+
+                "P" => {
+                    println!("probe with source {}", source);
+                    peers_rec.lock().unwrap().insert(source, SystemTime::now()); //TODO insert only seconds and IP
+                    // clean hosts that have not received content for more than x seconds
+                }
+
+                _ =>  {
+                }
             }
-            
-            //println!("{}", std::str::from_utf8(&buf[0..received_bytes2]).unwrap());
-            io::stdout().flush().unwrap();
-        }
+                
+        }      
     });
     
-    child.join().unwrap();
-    child2.join().unwrap();
+    receiver.join().unwrap();
+    sender.join().unwrap();
+    prober.join().unwrap();
 }
 
 fn process(socket: &UdpSocket, input: String) {
     match input.as_ref() {
         "" => {
+            
         },
+
+        "/quit" => {
+            process::exit(0x0f00);
+        },
+
+        "/peers" => {
+            //TODO print list of 
+        },
+        
         _ => {
             let size = input.len();
-            println!("{}", size);
-            let message = format!("{}{}{}", "M", size, input);
+            let message = format!("M{}{}", size, input);
             socket.send_to(&message.into_bytes(), "255.255.255.255:4041").expect("couldn't send data");
         }
     }
