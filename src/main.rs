@@ -69,7 +69,7 @@ fn main () {
 
             match std::str::from_utf8(&buffer[0..1]).unwrap() {
                 "M" => {
-                    println!("{}", std::str::from_utf8(&buffer[2..received_bytes]).unwrap());
+                    println!("{}: {}", source, std::str::from_utf8(&buffer[2..received_bytes]).unwrap());
                     io::stdout().flush().unwrap();
                     print!("> ");
                     io::stdout().flush().unwrap();
