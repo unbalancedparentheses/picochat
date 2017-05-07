@@ -1,7 +1,6 @@
 // TODO
 // when sending too much data, size gets printed. it is not beeing sent a u8, it is being sent as a string i think
 // add nickname
-// check how to print prompt. is it possible without using a CLI interface?
 // modularize
 // print list of peers (exclude myself or print myself and state it is me)
 // add /help
@@ -10,8 +9,7 @@
 //    Broadcast IP:  -B --broadcast {broadcast IP}
 //    RPC Port:      -P --port {port}
 // add encryption
-// add rooms
-// add CLI with https://github.com/gchp/rustbox or https://github.com/jeaye/ncurses-rs?
+// add rooms, by default join lobby
 
 use std::net::UdpSocket;
 use std::io;
@@ -42,7 +40,6 @@ fn main () {
 
                     process(&socket, input);
                     io::stdout().flush().unwrap();
-                    print!("> ");
                    // println!("peers {:?}", *peers_sender.lock().unwrap()); //TODO move this to the process of the sender when writting /peers
                 }
                 Err(error) =>
@@ -73,7 +70,9 @@ fn main () {
             match std::str::from_utf8(&buffer[0..1]).unwrap() {
                 "M" => {
                     println!("{}", std::str::from_utf8(&buffer[2..received_bytes]).unwrap());
-                    io::stdout().flush().unwrap();                    
+                    io::stdout().flush().unwrap();
+                    print!("> ");
+                    io::stdout().flush().unwrap();
                 }
 
                 "P" => {
