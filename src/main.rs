@@ -1,6 +1,9 @@
 // TODO
 // when sending too much data, size gets printed. it is not beeing sent a u8, it is being sent as a string i think
 // add nickname
+// add colors to line
+// check if use nanomsg, zeromq or similar
+// add rooms, by default join lobby
 // modularize
 // print list of peers (exclude myself or print myself and state it is me)
 // add /help
@@ -9,7 +12,9 @@
 //    Broadcast IP:  -B --broadcast {broadcast IP}
 //    RPC Port:      -P --port {port}
 // add encryption
-// add rooms, by default join lobby
+// handle C-c https://github.com/Detegr/rust-ctrlc/blob/master/examples/readme_example.rs so that it returns 0
+// if two instances are run, print address already in use
+// check if tokyo is useful
 
 use std::net::UdpSocket;
 use std::io;
