@@ -29,7 +29,7 @@ fn main () {
         let socket = UdpSocket::bind("0.0.0.0:0").expect("couldn't bind to address");
         socket.set_broadcast(true).expect("set_broadcast call failed");
 
-        print!("> ");
+        print!(">>> ");
         io::stdout().flush().unwrap();
 
         loop {
@@ -71,7 +71,7 @@ fn main () {
                 "M" => {
                     println!("{}: {}", source, std::str::from_utf8(&buffer[2..received_bytes]).unwrap());
                     io::stdout().flush().unwrap();
-                    print!("> ");
+                    print!(">>> ");
                     io::stdout().flush().unwrap();
                 }
 
