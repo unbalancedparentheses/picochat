@@ -20,6 +20,8 @@ use std::process;
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use std::time::SystemTime;
+extern crate chrono;
+use chrono::prelude::*;
 
 fn main () {
     let peers = Arc::new(Mutex::new(HashMap::new()));
@@ -69,7 +71,7 @@ fn main () {
 
             match std::str::from_utf8(&buffer[0..1]).unwrap() {
                 "M" => {
-                    println!("{}: {}", source, std::str::from_utf8(&buffer[2..received_bytes]).unwrap());
+                    println!("[{}] {}: {}", Local::now().format("%Y-%m-%d %H:%M:%S").to_string(), source, std::str::from_utf8(&buffer[2..received_bytes]).unwrap());
                     io::stdout().flush().unwrap();
                     print!(">>> ");
                     io::stdout().flush().unwrap();
@@ -96,7 +98,8 @@ fn main () {
 fn process(socket: &UdpSocket, input: String) {
     match input.as_ref() {
         "" => {
-            
+            print!(">>> ");
+            io::stdout().flush().unwrap();            
         },
 
         "/quit" => {
