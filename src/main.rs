@@ -15,6 +15,7 @@
 // handle C-c https://github.com/Detegr/rust-ctrlc/blob/master/examples/readme_example.rs so that it returns 0
 // if two instances are run, print address already in use
 // check if tokyo is useful
+// add one to one chat. creates a 1-1 room
 
 use std::net::UdpSocket;
 use std::io;
